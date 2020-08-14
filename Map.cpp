@@ -7,11 +7,15 @@ Map::Map( int N )
     LoadTexture( "Res/buildings.png" );
 
     //creating map
-    tileMap = new Vector3i* [N];
+    idMap = new int* [N];
     for( int i=0; i<N; i++ )
     {
-        tileMap[i] = new Vector3i [N];
+        idMap[i] = new int [N];
     }
+
+    for( int i=0; i<N; i++ )
+        for( int j=0; j<N; j++ )
+            idMap[i][j] = 0;
 }
 
 Map::Map( const char* path )
@@ -19,8 +23,8 @@ Map::Map( const char* path )
     LoadTexture( "Res/grounds.png" );
     LoadTexture( "Res/buildings.png" );
 
-    //loading map
-    tileMap = ResourceLoader::Get().LoadMapFromFile(path, this->N);
+    //loading map from save file
+    idMap = ResourceLoader::Get().LoadMapFromFile(path, this->N);
 }
 
 Map::~Map()
@@ -30,9 +34,9 @@ Map::~Map()
 
     for( int i=0; i<(this->N); i++ )
     {
-        delete [] tileMap[i];
+        delete [] idMap[i];
     }
-    delete [] tileMap;
+    delete [] idMap;
 }
 
 void Map::LoadTexture( const char* path )
@@ -48,36 +52,18 @@ void Map::UnloadTexture( const int n )
     textures.erase( textures.begin() + n );
 }
 
-Vector2i Map::GetTilePos( int r, int c )
-{
-    Vector2i t_pos = Vector2i( this->tileMap[r][c][1], this->tileMap[r][c][2] );
-    return t_pos;
-}
-
-int& Map::GetTileTex( int r, int c )
-{
-    return this->tileMap[r][c][0];
-}
-
-void Map::ChangeTile( int r, int c, Vector3i newVec )
-{
-    this->tileMap[r][c][0] = newVec[0];
-    this->tileMap[r][c][1] = newVec[1];
-    this->tileMap[r][c][2] = newVec[2];
-}
-
 void Map::Save( const char* path )
 {
     Logger::Get().PrintMessage("Saving...");
-    ResourceLoader::Get().SaveMapInFile( path, this->N, this->tileMap );
+    ResourceLoader::Get().SaveMapInFile( path, this->N, this->idMap );
     Logger::Get().PrintMessage( "Map saved." );
 }
 
 void Map::Draw(Camera cam)
 {
-    SDL_Rect copyRect;
+    SDL_Rect texRect;
     SDL_Rect drawRect;
-    Vector2i tilePos;
+    Vector3i tileVec;
 
     if( this->N == 0 )
     {
@@ -91,10 +77,10 @@ void Map::Draw(Camera cam)
             //Checking if tile fits in camera. If not then not render it. Simple as that
             if( i*32 - cam[0] >= 0 && i*32 - cam[0] < cam[2] && j*32 - cam[1] >= 0 && j*32 - cam[1] < cam[3] )
             {
-                tilePos = GetTilePos(i,j); //Texture tile position not the map tile position
-                copyRect = {tilePos[1]*32, tilePos[0]*32, 32, 32}; //this also has to be changed
+                tileVec = this->textureTiles[this->idMap[i][j]];
+                texRect = {tileVec[1]*32, tileVec[2]*32, 32, 32}; //this also has to be changed
                 drawRect = {i*32 - cam[0], j*32 - cam[1], 32, 32};
-                SDL_RenderCopy( Renderer::Get().GetRenderer(), (this->textures)[GetTileTex(i,j)], &copyRect, &drawRect );
+                SDL_RenderCopy( Renderer::Get().GetRenderer(), (this->textures)[tileVec[0]], &texRect, &drawRect );
             }
         }
 }
@@ -127,12 +113,12 @@ void Map::GenerateMap()
             {
                 int randomNumber = rand() % 4;
                 if( randomNumber < 3 ) //TESTING new tiles into randomizer like trees on the ground
-                    this->tileMap[x][y] = Vector3i(0, 0, 0);
+                    this->idMap[x][y] = Tile::ground;
                 else
-                    this->tileMap[x][y] = Vector3i(0, 1, 0);
+                    this->idMap[x][y] = Tile::forest;
             }
             else
-                this->tileMap[x][y] = Vector3i(0, 0, 1);
+                this->idMap[x][y] = Tile::water;
         }
 
     delete [] seedArray;
@@ -140,7 +126,7 @@ void Map::GenerateMap()
 }
 
 //Overloading
-Vector3i* Map::operator[]( unsigned int n )
+int* Map::operator[]( unsigned int n )
 {
-    return (this->tileMap)[n];
+    return (this->idMap)[n];
 }

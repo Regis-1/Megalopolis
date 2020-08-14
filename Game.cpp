@@ -38,7 +38,7 @@ void Game::Run()
 
     //Gameplay objects
     //City information (name, current population, current budget, fps [TEMPORARY])
-    CityInfo mainInfo = { "San Francisco", 0, 0, 0 };
+    CityInfo mainInfo = { "San Francisco", 0, 1000000, 0 };
     bool selectionPanel = false;
 
     while( !(hOutput.quit) )

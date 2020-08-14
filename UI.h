@@ -26,6 +26,7 @@ private:
     //TEMPORARY ui information for testing purposes
     UiLabel* ul_fpsCounter = nullptr;
     UiLabel* ul_populationStatus = nullptr;
+    UiLabel* ul_budgetStatus = nullptr;
     UiPanel* up_testPanel = nullptr;
 
 public:

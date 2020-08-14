@@ -10,7 +10,6 @@
 
 #include "Logger.h"
 #include "Renderer.h"
-#include "Vector3i.h"
 #include "stdlib.h"
 #include "time.h"
 
@@ -29,8 +28,8 @@ public:
 
     //Methods
     SDL_Texture* LoadTextureFromFile( const char* path );
-    Vector3i** LoadMapFromFile( const char* path, int& N );
-    void SaveMapInFile( const char* path, int N, Vector3i** mapMatrix );
+    int** LoadMapFromFile( const char* path, int& N );
+    void SaveMapInFile( const char* path, int N, int** mapMatrix );
     float PerlinNoise2D( int mapSize, float* seedArray, int octaves, float bias, float* outputArray );
 };
 
